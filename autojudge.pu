@@ -1,0 +1,30 @@
+@startuml
+
+class ManageTestCases {
+    + config
+    + contest
+    + RegisterUser()
+    + __UpdateConf()
+    + GetTestCases()
+    + AddTestCases()
+    - __ReadFile()
+    - __WriteFile()
+    - __ScrapePage()
+    - __LoginPage()
+    - __AnalyzePage()
+}
+
+class ExecuteTestCases {
+    + testinfo
+    + testCases
+    + sourcePath
+    + result
+    + Execute()
+    - __GetPath()
+    - __Build()
+    - __Run()
+    - __Result()
+}
+
+
+@enduml
