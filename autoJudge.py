@@ -20,21 +20,20 @@ class ExecuteTestCases:
     """テストケースの実行"""
 
 
-    def __init__(self, testcases, srcpath = ""):
+    def __init__(self, testcases):
         self.testinfo = testcases[0]
         self.testCases = testcases[1:]
-        self.sourcePath = srcpath
         self.result = {}
         self.result["build"] = 0
         self.result["result"] = {"AC":0, "WA":0, "TLE":0}
 
-    def Execute(self):
+    def Execute(self, srcpath = ""):
         """テストを実行"""
 
         print(YELLOW + "Judging " + self.testinfo["contest"] + "/" + self.testinfo["testname"] + "..." + COLORRESET)
-        if (self.sourcePath == ""):
-            self.sourcePath = self.__GetPath()
-        self.__Build()
+        if (srcpath == ""):
+            srcpath = self.__GetPath()
+        self.__Build(srcpath)
         if (self.result["build"] == 0):
             self.__Run()
         self.__Result()
@@ -56,14 +55,14 @@ class ExecuteTestCases:
                     workpath = element[1]
         return os.path.join(workpath, codepath)
 
-    def __Build(self):
+    def __Build(self, srcpath):
         """
         ソースコード(c++)をビルドし、結果をresult["build"]に格納
         ビルド成功(0), ビルド失敗(1), ソース無(2)
         """
         print(RED, end="")
-        if (os.path.exists(self.sourcePath) == True):
-            cmd = 'g++ -o tmp ' + self.sourcePath
+        if (os.path.exists(srcpath) == True):
+            cmd = 'g++ -o tmp ' + srcpath
             if (subprocess.run(cmd).returncode == 0):
                 self.result["build"] = 0
             else:
@@ -240,7 +239,7 @@ class ManageTestCases:
         targ_path = os.path.join(TESTCASES_PATH, file_name)
         with open(targ_path, "w") as f:
             for i, q in enumerate(testcases):
-                f.write("***test case " + str(i) + "***\n")
+                f.write("[test case " + str(i) + "]\n")
                 f.write("---input---\n")
                 f.write(q["input"])
                 f.write("---output---\n")
@@ -312,8 +311,8 @@ if __name__ == "__main__":
         exit()
 
     testcases = ac.GetTestCases(args.question, True)
-    if (args.path == None):
-        ex = ExecuteTestCases(testcases)
+    ex = ExecuteTestCases(testcases)
+    if (args.path != None):
+        ex.Execute(args.path)
     else:
-        ex = ExecuteTestCases(testcases, args.path)
-    ex.Execute()
+        ex.Execute()
