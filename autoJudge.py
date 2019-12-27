@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 import os, sys
 import time
@@ -63,7 +64,7 @@ class ExecuteTestCases:
         print(RED, end="")
         if (os.path.exists(srcpath) == True):
             cmd = 'g++ -o tmp ' + srcpath
-            if (subprocess.run(cmd).returncode == 0):
+            if (subprocess.run(cmd, shell = True).returncode == 0):
                 self.result["build"] = 0
             else:
                 self.result["build"] = 1
@@ -71,16 +72,15 @@ class ExecuteTestCases:
             self.result["build"] = 2
         print(COLORRESET, end="")
 
-    def __Run(self, machine = "win"):
-
+    def __Run(self):
         try:
             prefix = ""
-            if machine == "win":
+            if os.name == "nt":
                 prefix = ".exe"
             
             for i,testcase in enumerate(self.testCases):
                 print("testcase " + str(i + 1) + ": ", end="")
-                proc = subprocess.Popen("tmp" + prefix, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                proc = subprocess.Popen("./tmp" + prefix, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
                 proc.stdin.write(testcase["input"].encode())
                 proc.stdin.flush()
                 proc.stdout.flush()
@@ -260,6 +260,7 @@ class ManageTestCases:
         """認証が必要なページにログインする"""
 
         res = session.get(LOGIN_URL + str(self.contest))
+        print(res.text)
         page = BeautifulSoup(res.text, 'lxml')            
         csrf_token = page.find(attrs={'name': 'csrf_token'}).get('value')
         login_info = {

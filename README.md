@@ -3,6 +3,11 @@ auto judge system( Scraping Web Page and Build(c++) and Test source code)
 
 # Setting
 
+```
+pip3 install requests
+pip3 install bs4, lxml
+```
+
 ## ディレクトリ構成
 
 ソースが格納されたディレクトリでcloneされることを想定しています。  
