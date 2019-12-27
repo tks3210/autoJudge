@@ -18,7 +18,6 @@ class ManageTestCases {
 class ExecuteTestCases {
     + testinfo:テスト対象の情報
     + testCases:テストケース
-    + sourcePath:ソースコードのpath
     + result:テスト結果
     + Execute():テストを実行する
     - __GetPath():ソースコードのpath生成
