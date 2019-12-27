@@ -74,13 +74,14 @@ class ExecuteTestCases:
 
     def __Run(self):
         try:
-            prefix = ""
+            execcmd = ""
             if os.name == "nt":
-                prefix = ".exe"
-            
+                execcmd = "tmp.exe"
+            else:
+                execcmd = "./tmp"
             for i,testcase in enumerate(self.testCases):
                 print("testcase " + str(i + 1) + ": ", end="")
-                proc = subprocess.Popen("./tmp" + prefix, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+                proc = subprocess.Popen(execcmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
                 proc.stdin.write(testcase["input"].encode())
                 proc.stdin.flush()
                 proc.stdout.flush()
@@ -103,8 +104,8 @@ class ExecuteTestCases:
                     time.sleep(1)
 
         finally:
-            if (os.path.exists("tmp" + prefix) == True):
-                os.remove("tmp" + prefix)
+            if (os.path.exists(execcmd) == True):
+                os.remove(execcmd)
 
     def __Result(self):
         """
@@ -260,7 +261,6 @@ class ManageTestCases:
         """認証が必要なページにログインする"""
 
         res = session.get(LOGIN_URL + str(self.contest))
-        print(res.text)
         page = BeautifulSoup(res.text, 'lxml')            
         csrf_token = page.find(attrs={'name': 'csrf_token'}).get('value')
         login_info = {
