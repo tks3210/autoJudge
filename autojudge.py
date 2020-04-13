@@ -138,7 +138,8 @@ class ManageTestCases:
     def __init__(self, contest_name):
         os.makedirs(TESTCASES_PATH, exist_ok=True)
         self.config = {}
-        self.contest = contest_name
+        self.contest = str(contest_name)
+        self.contest_folder = os.path.join(TESTCASES_PATH, contest_name)
         
     def RegisterUser(self):
         """user設定(初回)"""
@@ -167,21 +168,21 @@ class ManageTestCases:
         except:
             print("cannot open config file.")
 
-    def GetTestCases(self, test_name, islogin = False):
+    def GetTestCases(self, problem_name, islogin = False):
         """指定された問題名からテストケースを取得しリストを返す"""
-
+        test_name = self.contest + '_' + problem_name
         self.__UpdateConf()
-        file_name = self.contest + "_" + test_name + ".txt"
-        testinfo = [{"contest": self.contest, "testname": self.contest + '_' + test_name}]
+        file_name = test_name + ".txt"
+        testinfo = [{"contest": self.contest, "testname": test_name}]
         # サーバ負荷低減のため同一情報の取得はスクレイピングさせない
-        if file_name in os.listdir(TESTCASES_PATH):
+        if os.path.exists(self.contest_folder) and file_name in os.listdir(self.contest_folder):
             testcases = self.__ReadFile(file_name)
         else:
             testcases = self.__ScrapePage(test_name, islogin)
             self.__WriteFile(file_name, testcases)
         return testinfo + testcases
 
-    def AddTestCases(self, test_name):
+    def AddTestCases(self, problem_name):
         """取得したテストケースに独自のテストケースを追加する"""
 
         self.__UpdateConf()
@@ -202,8 +203,8 @@ class ManageTestCases:
                 break;
             testcase["output"] += line + "\n"
             
-        file_name = self.contest + "@" + test_name + ".txt"
-        if file_name in os.listdir(TESTCASES_PATH):
+        file_name = problem_name + ".txt"
+        if os.path.exists(self.contest_folder) and file_name in os.listdir(self.contest_folder):
             testcases = self.__ReadFile(file_name)
         testcases.append(testcase)
         self.__WriteFile(file_name, testcases)
@@ -212,7 +213,7 @@ class ManageTestCases:
         """ファイルを読む"""
 
         testcases = []
-        targ_path = os.path.join(TESTCASES_PATH, file_name)
+        targ_path = os.path.join(self.contest_folder, file_name)
         with open(targ_path, "r") as f:
             while(1):
                 st = f.readline().rstrip('\r\n')
@@ -237,7 +238,7 @@ class ManageTestCases:
 
     def __WriteFile(self, file_name, testcases):
         """ファイルを書く"""
-        targ_path = os.path.join(TESTCASES_PATH, file_name)
+        targ_path = os.path.join(self.contest_folder, file_name)
         with open(targ_path, "w") as f:
             for i, q in enumerate(testcases):
                 f.write("[test case " + str(i) + "]\n")
@@ -253,14 +254,14 @@ class ManageTestCases:
             # loginに必要な認証情報を取得
             self.__LoginPage(session)
  
-        pageAll = session.get(CONTEST_URL + str(self.contest) + "/tasks/" + str(test_name))
+        pageAll = session.get(CONTEST_URL + self.contest + "/tasks/" + str(test_name))
         testcases = self.__AnalyzePage(pageAll)
         return testcases
 
     def __LoginPage(self, session):
         """認証が必要なページにログインする"""
 
-        res = session.get(LOGIN_URL + str(self.contest))
+        res = session.get(LOGIN_URL + self.contest)
         page = BeautifulSoup(res.text, 'lxml')            
         csrf_token = page.find(attrs={'name': 'csrf_token'}).get('value')
         login_info = {
@@ -268,7 +269,7 @@ class ManageTestCases:
             "username": self.config["username"],
             "password": self.config["password"],
         }
-        session.post(LOGIN_URL + str(self.contest), data=login_info)
+        session.post(LOGIN_URL + self.contest, data=login_info)
 
     def __AnalyzePage(self, page_org):
         """取得した問題のページから問題部分を抽出する"""
