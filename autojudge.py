@@ -171,8 +171,8 @@ class ManageTestCases:
         """指定された問題名からテストケースを取得しリストを返す"""
 
         self.__UpdateConf()
-        file_name = self.contest + "@" + test_name + ".txt"
-        testinfo = [{"contest":self.contest, "testname":test_name}]
+        file_name = self.contest + "_" + test_name + ".txt"
+        testinfo = [{"contest": self.contest, "testname": self.contest + '_' + test_name}]
         # サーバ負荷低減のため同一情報の取得はスクレイピングさせない
         if file_name in os.listdir(TESTCASES_PATH):
             testcases = self.__ReadFile(file_name)
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("contest_name", help = "set contest name(ex. abc143)", type = str)
-    parser.add_argument("question", help = "set question name(ex. abc143_a)", type = str)
+    parser.add_argument("question", help = "set question name(ex. a)", type = str)
     parser.add_argument("-p", "--path", help = "set path of source code", type = str)
     parser.add_argument("-a", "--addtest", help = "add testcase", action="store_true")
     parser.add_argument("-i", "--init", help = "set configuration", action ="store_true")
