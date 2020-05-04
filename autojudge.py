@@ -93,7 +93,7 @@ class ExecuteTestCases:
                         print(YELLOW + "WA" + COLORRESET)
                         print(RED + " predicted:"+ ans.rstrip('\r\n') + "\n" + " result:" + out.rstrip('\r\n') + COLORRESET)
                 except:
-                    pself.result["result"]["TLE"] += 1
+                    self.result["result"]["TLE"] += 1
                     print(YELLOW + "TLE" + COLORRESET)
                     proc.terminate()
                     # process終了後timeoutを設けない場合、tmp.exeが削除できないことがある。
