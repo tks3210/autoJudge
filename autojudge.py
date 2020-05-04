@@ -1,21 +1,12 @@
 # -*- coding: utf-8 -*-
-import requests
-import os, sys
+import os
+import sys
 import time
+import requests
 import subprocess
 import select
 from bs4 import BeautifulSoup
-
-LOGIN_URL = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fcontests%2F'
-CONTEST_URL = 'https://atcoder.jp/contests/'
-CONF_FILE = 'setting.conf'
-TESTCASES_PATH = 'testcase'
-TLE_TIME = 2
-
-RED = "\033[31m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-COLORRESET = "\033[0m"
+from config import *
 
 class ExecuteTestCases:
     """テストケースの実行"""
@@ -33,9 +24,13 @@ class ExecuteTestCases:
 
         print(YELLOW + "Judging " + self.testinfo["contest"] + "/" + self.testinfo["testname"] + "..." + COLORRESET)
         if (srcpath == ""):
-            srcpath = self.__GetPath()
-        self.__Build(srcpath)
-        if (self.result["build"] == 0):
+            self.srcpath = self.__GetPath()
+        else:
+            self.srcpath = os.path.abspath(srcpath)
+        self.ispython = os.path.splitext(srcpath)[1] == '.py'
+        if not self.ispython:
+            self.__Build(srcpath)
+        if self.result["build"] == 0:
             self.__Run()
         self.__Result()
 
@@ -74,14 +69,15 @@ class ExecuteTestCases:
 
     def __Run(self):
         try:
-            execcmd = ""
-            if os.name == "nt":
-                execcmd = "tmp.exe"
+            if self.ispython:
+                cmd = ['python', self.srcpath]
+            elif os.name == "nt":
+                cmd = "tmp.exe"
             else:
-                execcmd = "./tmp"
+                cmd = "./tmp"
             for i,testcase in enumerate(self.testCases):
                 print("testcase " + str(i + 1) + ": ", end="")
-                proc = subprocess.Popen(execcmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
                 proc.stdin.write(testcase["input"].encode())
                 proc.stdin.flush()
                 proc.stdout.flush()
@@ -97,15 +93,15 @@ class ExecuteTestCases:
                         print(YELLOW + "WA" + COLORRESET)
                         print(RED + " predicted:"+ ans.rstrip('\r\n') + "\n" + " result:" + out.rstrip('\r\n') + COLORRESET)
                 except:
-                    self.result["result"]["TLE"] += 1
+                    pself.result["result"]["TLE"] += 1
                     print(YELLOW + "TLE" + COLORRESET)
                     proc.terminate()
                     # process終了後timeoutを設けない場合、tmp.exeが削除できないことがある。
                     time.sleep(1)
 
         finally:
-            if (os.path.exists(execcmd) == True):
-                os.remove(execcmd)
+            if not self.ispython and os.path.exists(cmd) == True:
+                os.remove(cmd)
 
     def __Result(self):
         """
@@ -139,7 +135,7 @@ class ManageTestCases:
         os.makedirs(TESTCASES_PATH, exist_ok=True)
         self.config = {}
         self.contest = str(contest_name)
-        self.contest_folder = os.path.join(TESTCASES_PATH, contest_name)
+        self.contest_folder = os.path.join(TESTCASES_PATH, self.contest)
         
     def RegisterUser(self):
         """user設定(初回)"""
@@ -157,8 +153,8 @@ class ManageTestCases:
             f.write("srcpath:" + srcpath + "\n")
 
     def __UpdateConf(self):
-        try:        
-            with open(CONF_FILE, "r") as f:
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), CONF_FILE), "r") as f:
                 while True:
                     line = f.readline().rstrip('\r\n')
                     if not line:
@@ -166,16 +162,21 @@ class ManageTestCases:
                     element = line.split(':')
                     self.config[element[0]] = element[1]
         except:
+            print(sys.exc_info())
             print("cannot open config file.")
 
     def GetTestCases(self, problem_name, islogin = False):
         """指定された問題名からテストケースを取得しリストを返す"""
-        test_name = self.contest + '_' + problem_name
         self.__UpdateConf()
-        file_name = test_name + ".txt"
+        test_name = self.contest + '_' + problem_name
+        file_name = problem_name + ".txt"
         testinfo = [{"contest": self.contest, "testname": test_name}]
+        # コンテスト名のフォルダーがなければつくる
+        if not  os.path.exists(self.contest_folder):
+            os.mkdir(self.contest_folder)
+
         # サーバ負荷低減のため同一情報の取得はスクレイピングさせない
-        if os.path.exists(self.contest_folder) and file_name in os.listdir(self.contest_folder):
+        if file_name in os.listdir(self.contest_folder):
             testcases = self.__ReadFile(file_name)
         else:
             testcases = self.__ScrapePage(test_name, islogin)
@@ -254,7 +255,7 @@ class ManageTestCases:
             # loginに必要な認証情報を取得
             self.__LoginPage(session)
  
-        pageAll = session.get(CONTEST_URL + self.contest + "/tasks/" + str(test_name))
+        pageAll = session.get(CONTEST_URL + self.contest + "/tasks/" + test_name)
         testcases = self.__AnalyzePage(pageAll)
         return testcases
 
