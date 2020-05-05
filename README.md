@@ -60,11 +60,12 @@ git clone https://github.com/tks3210/autoJudge.git
 username:[Atcoder ユーザ名]
 password:[Atcoder パスワード]
 srcpath:../
-defaultextension:[デフォルトで実行したい拡張子]
+defaultextension:.cpp
 
 ```
 * username/passwordにユーザ名/パスワードを記載
 * srcpathにautoJudge.pyからトップディレクトリへの相対パスを記載
+* defaultextensionにデフォルトで実行したい拡張子を入力（.も含める）
 
 ## コマンド登録
 ```
