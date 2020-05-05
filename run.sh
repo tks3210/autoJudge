@@ -1,1 +1,1 @@
-python autojudge.py
+python autojudge.py "$@"

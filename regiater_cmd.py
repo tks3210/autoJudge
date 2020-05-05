@@ -4,7 +4,9 @@ import argparse
 
 if __name__ == '__main__':
 
+    # 登録するコマンド名を受け取るパーサーの作成
     parser = argparse.ArgumentParser()
+    # 引数がなければatjudgeにする
     parser.add_argument('command_name', help='commmand name to register', type=str, nargs='*', default='atjudge')
     args = parser.parse_args()
 

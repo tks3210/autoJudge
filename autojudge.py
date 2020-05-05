@@ -17,48 +17,62 @@ class ExecuteTestCases:
         self.testCases = testcases[1:]
         self.result = {}
         self.result["build"] = 0
-        self.result["result"] = {"AC":0, "WA":0, "TLE":0}
+        self.result["result"] = {"AC":0, "WA":0, "TLE":0, "RE":0}
 
     def Execute(self, srcpath = ""):
         """テストを実行"""
 
-        print(YELLOW + "Judging " + self.testinfo["contest"] + "/" + self.testinfo["testname"] + "..." + COLORRESET)
         if (srcpath == ""):
             self.srcpath = self.__GetPath()
         else:
-            self.srcpath = os.path.abspath(srcpath)
-        self.ispython = os.path.splitext(srcpath)[1] == '.py'
-        if not self.ispython:
-            self.__Build(srcpath)
+            self.srcpath = srcpath
+        
+        # ジャッジするファイルパスを出力
+        print(YELLOW + "Judging " + self.srcpath + COLORRESET)
+        
+        # 拡張子を調べ、Pythonかどうか判定、メンバ変数に格納
+        self.ispython = os.path.splitext(self.srcpath)[1] == '.py'
+        self.__Build()
         if self.result["build"] == 0:
             self.__Run()
         self.__Result()
 
-    def __GetPath(self):
-        """
-        未指定時にソースコードの場所を取得
-        設定ファイル(CONF_FILE)記載の相対パス/コンテスト名/テスト名.cppを返す
-        """
-        codepath = os.path.join(self.testinfo["contest"], self.testinfo["testname"] + ".cpp")
-        workpath = "."
+    def __ReturnConfFileInfo(self, key):
         with open(CONF_FILE, "r") as f:
             while True:
                 line = f.readline().rstrip('\n')
                 if not line:
                     break
                 element = line.split(':')
-                if (element[0] == "srcpath"):
-                    workpath = element[1]
+                if (element[0] == key):
+                    return element[1]
+
+    def __GetPath(self):
+        """
+        未指定時にソースコードの場所を取得
+        設定ファイル(CONF_FILE)記載の相対パス/コンテスト名/テスト名.cppを返す
+        """
+        # どの言語のファイルを探すかをconfファイルから取得する
+        default_extension = self.__ReturnConfFileInfo("defaultextension")
+
+        codepath = os.path.join(self.testinfo["contest"], self.testinfo["problem"] + default_extension)
+        workpath = self.__ReturnConfFileInfo("srcpath")
+        if workpath == None:
+            workpath = "."
+        
         return os.path.join(workpath, codepath)
 
-    def __Build(self, srcpath):
+    def __Build(self):
         """
         ソースコード(c++)をビルドし、結果をresult["build"]に格納
         ビルド成功(0), ビルド失敗(1), ソース無(2)
         """
-        print(RED, end="")
-        if (os.path.exists(srcpath) == True):
-            cmd = 'g++ -o tmp ' + srcpath
+        # print(RED, end="")
+        if (os.path.exists(self.srcpath) == True):
+            # Pythonならビルドせずパス
+            if self.ispython:
+                return
+            cmd = 'g++ -o tmp ' + self.srcpath
             if (subprocess.run(cmd, shell = True).returncode == 0):
                 self.result["build"] = 0
             else:
@@ -89,8 +103,13 @@ class ExecuteTestCases:
                         self.result["result"]["AC"] += 1
                         print(GREEN + "AC" + COLORRESET)
                     else:
-                        self.result["result"]["WA"] += 1
-                        print(YELLOW + "WA" + COLORRESET)
+                        
+                        if proc.returncode == 0:
+                            resultkey = "WA"
+                        else:
+                            resultkey = "RE"
+                        self.result["result"][resultkey] += 1
+                        print(YELLOW + resultkey + COLORRESET)
                         print(RED + " predicted:"+ ans.rstrip('\r\n') + "\n" + " result:" + out.rstrip('\r\n') + COLORRESET)
                 except:
                     self.result["result"]["TLE"] += 1
@@ -117,15 +136,18 @@ class ExecuteTestCases:
             print(COLORRESET, end="")
             return
 
-
-        if (self.result["build"] == 1):
-            RESULT = YELLOW + "CE" + COLORRESET
-        elif (self.result["result"]["AC"] == len(self.testCases)):
-            RESULT = GREEN + "AC" + COLORRESET
-        elif (self.result["result"]["TLE"] >= 1):
-            RESULT = YELLOW + "TLE" + COLORRESET
+        if self.result["build"] == 1:
+            RESULT = YELLOW + "CE"
+        elif self.result["result"]["RE"] >= 1:
+            RESULT = YELLOW + "RE"
+        elif self.result["result"]["TLE"] >= 1:
+            RESULT = YELLOW + "TLE"
+        elif self.result["result"]["AC"] == len(self.testCases):
+            RESULT = GREEN + "AC"
         else: 
-            RESULT = YELLOW + "WA" + COLORRESET
+            RESULT = YELLOW + "WA"
+
+        RESULT += COLORRESET
         print("result: " + RESULT)
 
 class ManageTestCases:
@@ -168,9 +190,10 @@ class ManageTestCases:
     def GetTestCases(self, problem_name, islogin = False):
         """指定された問題名からテストケースを取得しリストを返す"""
         self.__UpdateConf()
+        # atcoder上の問題のファイル名
         test_name = self.contest + '_' + problem_name
         file_name = problem_name + ".txt"
-        testinfo = [{"contest": self.contest, "testname": test_name}]
+        testinfo = [{"contest": self.contest, "problem": problem_name, "testname": test_name}]
         # コンテスト名のフォルダーがなければつくる
         if not  os.path.exists(self.contest_folder):
             os.mkdir(self.contest_folder)
