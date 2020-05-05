@@ -16,7 +16,7 @@ if __name__ == '__main__':
     elif os.name == 'posix':
         cmd = [targetfilepath, '/usr/local/bin/' + args.command_name]
     else:
-        print('このOSは対応していません。\n手動でシンボリックリンクを作成、またはエイリアスを登録してください\n')
+        print('This OS is not supported\nPlease create a symbolic link or register an alias manually\n')
         print('ファイルパス：')
         print(targetfilepath)
         sys.exit()
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     except FileExistsError as e:
         print(e)
     except OSError:
-        print('Permission denied.\nPlease run it again with administrative privileges.')
+        print('Permission denied\nPlease run it again with administrative privileges')
     except Exception as e:
         print(e)
     else:
