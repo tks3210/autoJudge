@@ -13,7 +13,7 @@ auto judge system( Scraping Web Page and Build(c++) and Test source code)
 ## import module
 ```
 pip install requests
-pip install bs4, lxml
+pip install bs4 lxml
 ```
 
 ## ディレクトリ構成(directory path)
