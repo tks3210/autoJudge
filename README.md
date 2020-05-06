@@ -5,9 +5,9 @@ auto judge system( Scraping Web Page and Build(c++) and Test source code)
 
 ## 想定環境(environment)
 
-* OS: Windows10 / Mac(Mojave 10.14.6)
+* OS: Windows10 / Mac(Mojave 10.15.4)
 * C++ Compiler: gcc (or clang?)
-* Python:3.7.1
+* Python:3.8.2
   * python module: requests, bs4, lxml
 
 ## import module
@@ -29,20 +29,27 @@ git clone https://github.com/tks3210/autoJudge.git
 ```
 .
 ├── autoJudge (here!)
-│   ├── setting.conf
 │   ├── autojudge.py
+│   ├── config.py
+│   ├── design.pu
+│   ├── setting.conf
+│   ├── regiater_cmd.py
+│   ├── run.sh
+│   ├── setting.conf
 │   ├── testcase
-│   │   ├── abc142@abc142_a.txt
-│   │   └── abc143@abc143_a.txt 
-│   └── design.pu
-├── abc142
-│   ├── abc142_a.cpp
-│   ├── abc142_b.cpp
-│   ├── abc142_c.cpp
-│   ├── abc142_d.cpp
-│   ├── abc142_e.cpp
-│   └── abc142_f.cpp
-├── abc143
+│   │   ├── abc162
+│   │   │   ├── a.cpp
+│   │   │   ├── b.cpp
+│   │   ├── abc163
+│   │   │   :
+├── abc162
+│   ├── a.cpp
+│   ├── b.cpp
+│   ├── c.cpp
+│   ├── d.cpp
+│   ├── e.cpp
+│   └── f.cpp
+├── abc163
 :
 ```
 
@@ -53,16 +60,48 @@ git clone https://github.com/tks3210/autoJudge.git
 username:[Atcoder ユーザ名]
 password:[Atcoder パスワード]
 srcpath:../
+defaultextension:.cpp
+
 ```
 * username/passwordにユーザ名/パスワードを記載
 * srcpathにautoJudge.pyからトップディレクトリへの相対パスを記載
+* defaultextensionにデフォルトで実行したい拡張子を入力（.も含める）
+
+## コマンド登録
+```
+python regiater_cmd.py
+``` 
+と打ち、regiater_cmd.pyを実行すると  
+Windowsなら"C:/commands/"  
+Unixなら"/usr/local/bin/"  
+配下に、autojudge.pyを実行するrun.shのシンボリックリンクを貼ります
+
+コマンド登録をすると
+```
+python [autojudge.pyまでのパス] abc164 a
+```
+を実行する必要があったのが、   
+```
+atjudge abc 164 a
+```
+上のように打つとどこからでもautojudgeを呼び出すことが出来ます  
+
+引数をとると
+```
+python regiater_cmd.py judge
+```
+引数の文字でコマンド登録されます
+```
+judge abc 164 a
+```
+
 
 # Execute Test
 
 AC
 ```
->python autojudge.py abc143 abc143_a
-Judging abc143/abc143_a...
+>atjudge abc162 abc162_a
+Judging ../abc162/a.cpp
 testcase 1: AC
 testcase 2: AC
 testcase 3: AC
@@ -71,8 +110,8 @@ result: AC
 WA
 
 ```
->python autojudge.py abc143 abc143_a
-Judging abc143/abc143_a...
+>atjudge abc162 abc162_a
+Judging ../abc162/a.cpp
 testcase 1: WA
  predicted:8
  result:4
@@ -82,19 +121,47 @@ result: WA
 ```
 TLE
 ```
->python autojudge.py abc143 abc143_a
-Judging abc143/abc143_a...
+>atjudge abc162 abc162_a
+Judging ../abc162/a.cpp
 testcase 1: AC
 testcase 2: TLE
 testcase 3: TLE
 result: TLE
 ```
+RE
+```
+>atjudge abc162 a -p ../abc162/a.py 
+Judging ../abc162/a.py
+Traceback (most recent call last):
+  File "../abc162/a.py", line 2, in <module>
+    if 7 in s:
+TypeError: 'in <string>' requires string as left operand, not int
+testcase 1: RE
+ predicted:
+ result:Yes
+Traceback (most recent call last):
+  File "../abc162/a.py", line 2, in <module>
+    if 7 in s:
+TypeError: 'in <string>' requires string as left operand, not int
+testcase 2: RE
+ predicted:
+ result:No
+Traceback (most recent call last):
+  File "../abc162/a.py", line 2, in <module>
+    if 7 in s:
+TypeError: 'in <string>' requires string as left operand, not int
+testcase 3: RE
+ predicted:
+ result:Yes
+result: RE
+```
+
 # Add original testcase
 
 -aオプションでテストケース追加
 
 ```
->python autojudge.py abc143 abc143_a -a
+>atjudge abc162 abc162_a -a
 type test input(exit by "quit")
 20 7
 quit
@@ -108,11 +175,11 @@ quit
 -iオプションで設定ファイル再構成
 
 ```
->python autojudge.py abc143 abc143_d -i
+>atjudge abc162 d -i
 Atcoder Username:tks_fj
 Atcoder Password:*******
 Src Directory(Ex. ./aaa/abc140/abc140.cpp => input "./aaa"):../../02_contest
-Judging abc143/abc143_d...
+Judging ../../02_contest/abc162/d.cpp
 testcase 1: AC
 testcase 2: AC
 testcase 3: AC
@@ -124,8 +191,8 @@ result: AC
 -pオプションでソースコードのパスを指定可能
 
 ```
->python autojudge.py abc143 abc143_a -p ../../02_contest/abc143/abc143_a.cpp
-Judging abc143/abc143_a...
+>atjudge abc162 abc162_a -p ../../02_contest/abc162/abc162_a.cpp
+Judging a../../02_contest/abc162/abc162_a.cpp
 testcase 1: AC
 testcase 2: AC
 testcase 3: AC
