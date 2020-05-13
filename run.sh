@@ -1,1 +1,1 @@
-python autojudge.py "$@"
+python $(dirname $(readlink $0))/autojudge.py "$@"
