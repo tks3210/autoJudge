@@ -53,10 +53,17 @@ class ExecuteTestCases:
         """
         # どの言語のファイルを探すかをconfファイルから取得する
         default_extension = self._return_conf_file_info("defaultextension")
-
-        code_path = os.path.join(self._test_info["contest"], self._test_info["problem"] + default_extension)
+        file_format = self._return_conf_file_info("fileformat")
+        if file_format == "":
+            file_format = self._test_info["problem"]
+        else:
+            file_format = file_format.replace('{contest}', self._test_info["contest"])
+            file_format = file_format.replace('{problem}', self._test_info["problem"])
+            file_format = file_format.replace('{CONTEST}', self._test_info["contest"].upper())
+            file_format = file_format.replace('{PROBLEM}', self._test_info["problem"].upper())
+        code_path = os.path.join(self._test_info["contest"], file_format + default_extension)
         work_path = self._return_conf_file_info("srcpath")
-        if work_path is None:
+        if work_path == "":
             work_path = "."
 
         return os.path.join(work_path, code_path)
