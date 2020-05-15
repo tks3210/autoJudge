@@ -19,7 +19,7 @@ pip install bs4 lxml
 ## ディレクトリ構成(directory path)
 
 テスト対象のソースコード(.cpp)が格納されたディレクトリで**autoJudge**がcloneされることを想定しており、
-下記のようなディレクトリ構成と命名規則での動作を推奨してます。  
+下記のようなディレクトリ構成と命名規則での動作を推奨してます。(ソースコードの命名規則はfileformatから新たに規定可能です。)
 (ただ、-pオプションでソースコードのパスを直接指定出来るので、下記の構成じゃなくても動きます。）
 ```
 git clone https://github.com/tks3210/autoJudge.git
@@ -60,12 +60,28 @@ git clone https://github.com/tks3210/autoJudge.git
 username:[Atcoder ユーザ名]
 password:[Atcoder パスワード]
 srcpath:../
+fileformat:{problem}_{problem}
 defaultextension:.cpp
 
 ```
 * username/passwordにユーザ名/パスワードを記載
 * srcpathにautoJudge.pyからトップディレクトリへの相対パスを記載
+* fileformatによって、ソースファイルの命名規則を規定できる。
+  * デフォルトでは、a.cppのように認識される。
 * defaultextensionにデフォルトで実行したい拡張子を入力（.も含める）
+
+### 命名規則の設定について(fileformat)
+fileformat:の記載に沿って、ソースファイルの命名規則をある程度設定できる。  
+例えば、abc140_C.cppのようなソースファイルで命名している場合、
+```
+fileformat:{contest}_{PROBLEM}
+```
+と書くことで、abc140_C.cppのファイルをコンテストabc140のC問題のソースコードと認識される。
+* 命名規則を規定するに当たって使用できる変数は下記の4つ
+  * {contest} => Ex. abc140
+  * {CONTEST} => Ex. ABC140
+  * {problem} => Ex. a
+  * {PROBLEM} => Ex. A
 
 ## コマンド登録
 ```
